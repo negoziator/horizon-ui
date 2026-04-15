@@ -1,0 +1,16 @@
+.idea
+.php-cs-fixer.cache
+.phpunit.result.cache
+build
+composer.lock
+coverage
+phpunit.xml
+psalm.xml
+testbench.yaml
+tests/temp
+vendor
+.phpunit.cache
+
+CLAUDE.md
+HORIZON_UI_PACKAGE_PLAN.md
+.mcp.json
