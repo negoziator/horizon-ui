@@ -35,9 +35,7 @@ composer require negoziator/horizon-ui
 php artisan horizon-ui:install
 ```
 
-`horizon-ui:install` publishes `config/horizon-ui.php` and prints the dashboard URL.
-
-The dashboard is available at `/horizon-ui` by default. Open it in your browser — you should see the Horizon UI page rendered by Inertia.
+`horizon-ui:install` publishes `config/horizon-ui.php`, copies the Vue components to `resources/js/vendor/horizon-ui/`, and prints the dashboard URL.
 
 ### Frontend peer dependencies
 
@@ -49,18 +47,28 @@ npm install @reka-ui/vue lucide-vue-next
 
 ### Inertia page resolution
 
-The `HorizonDashboard` Inertia component must be resolvable by your app. The simplest way is to update your `app.ts` (or `app.js`) to check the vendor path as a fallback:
+The `HorizonDashboard` Inertia component is placed in `resources/js/vendor/horizon-ui/pages/` (done automatically by `horizon-ui:install`). Vite's `import.meta.glob` doesn't scan that path by default, so you need to add it to your resolve function in `app.ts` (or `app.js`):
 
 ```ts
-resolve: (name) =>
-    resolvePageComponent(`./pages/${name}.vue`, import.meta.glob('./pages/**/*.vue'))
-    ?? resolvePageComponent(
-        `./vendor/horizon-ui/pages/${name}.vue`,
-        import.meta.glob('./vendor/horizon-ui/pages/**/*.vue'),
-    ),
+// at the top of app.ts:
+// import type { DefineComponent } from 'vue';
+
+resolve: (name) => {
+    const appPages = import.meta.glob<DefineComponent>('./pages/**/*.vue');
+    const vendorPages = import.meta.glob<DefineComponent>('./vendor/horizon-ui/pages/**/*.vue');
+    const vendorPath = `./vendor/horizon-ui/pages/${name}.vue`;
+
+    if (vendorPath in vendorPages) {
+        return resolvePageComponent(vendorPath, vendorPages);
+    }
+
+    return resolvePageComponent(`./pages/${name}.vue`, appPages);
+},
 ```
 
-This works whether you are using the bundled components or have published them.
+> **Why not `??`?** `resolvePageComponent` throws when a component isn't found, so the `??` operator never gets to evaluate the fallback. The `in` check is required.
+
+After publishing (`vendor:publish --tag=horizon-ui-vue`), or after a package update where you want to pull in new component versions, re-run the publish command. Your edited copies are never overwritten without `--force`.
 
 ## Configuration
 

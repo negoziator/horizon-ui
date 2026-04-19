@@ -22,9 +22,12 @@ class HorizonUiServiceProvider extends PackageServiceProvider
             ->hasInstallCommand(function ($command) {
                 $command
                     ->publishConfigFile()
-                    ->endWith(fn ($cmd) => $cmd->info(
-                        'Horizon UI installed. Visit: '.url(config('horizon-ui.path', 'horizon-ui'))
-                    ));
+                    ->endWith(function ($cmd): void {
+                        $cmd->call('vendor:publish', ['--tag' => 'horizon-ui-vue']);
+                        $cmd->newLine();
+                        $cmd->info('Horizon UI installed. Dashboard: '.url(config('horizon-ui.path', 'horizon-ui')));
+                        $cmd->comment('Next: update your Inertia resolve function in app.ts — see the README for the snippet.');
+                    });
             });
     }
 
