@@ -51,6 +51,7 @@ class HorizonDashboardController extends Controller
             'batchRetry'         => url($prefix.'/batches'),   // append /{id}/retry
             'supervisorPause'    => url($prefix.'/supervisors'), // append /{name}/pause
             'supervisorContinue' => url($prefix.'/supervisors'), // append /{name}/continue
+            'jobSearch'          => url($prefix.'/jobs/search'),
         ];
     }
 }

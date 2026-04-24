@@ -8,6 +8,7 @@ Features at a glance:
 - Queue metrics and per-supervisor workload
 - Recent/failed/pending job browser with retry, forget, and bulk flush
 - Batch browser with retry and cancel
+- **Full-text job search** across class name, queue, tags, and payload content
 - `viewHorizonUi` gate for fine-grained access control
 - Optional `horizon-ui:auto-pause` command that pauses idle supervisors automatically
 - Publishable Vue components for full frontend customization
@@ -98,6 +99,11 @@ return [
     'auto_pause' => [
         'enabled' => false,
     ],
+
+    // Job search: max jobs scanned per request
+    'search' => [
+        'scan_limit' => 1000,
+    ],
 ];
 ```
 
@@ -148,6 +154,44 @@ router.post(props.routes.pause, {}, { preserveScroll: true })
 ```
 
 If you add custom API routes, extend `buildRouteMap()` in a subclass or override the controller binding.
+
+## Job search
+
+The package exposes a search endpoint that scans jobs in PHP and filters across class name, queue name, tags, and the decoded payload:
+
+```
+GET /{path}/api/jobs/search
+```
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `q` | string | — | Search term (required, min 2 chars) |
+| `type` | string | `recent` | Job set: `recent`, `failed`, `pending`, `completed` |
+| `queue` | string | — | Restrict to a specific queue name |
+| `limit` | int | `25` | Max results to return (max `100`) |
+| `cursor` | int | `0` | Offset to resume from (use `next_cursor` from the previous response) |
+
+The response includes a `next_cursor` value for fetching the next page; it is `null` when results are exhausted.
+
+The `jobSearch` URL is included in the Inertia `routes` prop so Vue components can call it directly:
+
+```ts
+axios.get(props.routes.jobSearch, { params: { q: 'SendEmail', type: 'failed' } })
+```
+
+### Search performance
+
+The search scans jobs in windows of 200, stopping once the requested number of results is found or the configured scan ceiling is reached. For large queues, keep queries specific and use the `queue` filter to narrow the scan.
+
+The scan ceiling is configurable in `config/horizon-ui.php`:
+
+```php
+'search' => [
+    'scan_limit' => 1000, // max jobs scanned per request
+],
+```
+
+For installations with tens of thousands of jobs, document that search is intended for development and small-to-medium production queues. Very large queues may need an external index (e.g. Redis Search).
 
 ## Auto-pause command
 

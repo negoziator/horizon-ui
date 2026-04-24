@@ -27,6 +27,7 @@ Route::middleware(config('horizon-ui.middleware', ['web', 'auth']))
                 Route::post('supervisors/{name}/pause',          [HorizonApiController::class, 'pauseSupervisor'])->name('supervisors.pause');
                 Route::post('supervisors/{name}/continue',       [HorizonApiController::class, 'continueSupervisor'])->name('supervisors.continue');
                 Route::get('job/{id}',                           [HorizonApiController::class, 'showJob'])->name('job.show');
+                Route::get('jobs/search',                        [HorizonApiController::class, 'searchJobs'])->name('jobs.search');
                 Route::get('jobs/{type}',                        [HorizonApiController::class, 'jobs'])->name('jobs');
                 Route::get('metrics',                            [HorizonApiController::class, 'metrics'])->name('metrics');
                 Route::get('batches',                            [HorizonApiController::class, 'batches'])->name('batches');

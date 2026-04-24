@@ -41,4 +41,13 @@ return [
     'auto_pause' => [
         'enabled' => false,
     ],
+
+    /*
+     * Job search settings.
+     * scan_limit caps how many jobs are scanned per search request to prevent
+     * memory exhaustion on very large queues.
+     */
+    'search' => [
+        'scan_limit' => 1000,
+    ],
 ];
