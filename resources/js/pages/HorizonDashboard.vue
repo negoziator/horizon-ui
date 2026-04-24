@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import BatchesList from '../components/BatchesList.vue';
 import HorizonControls from '../components/HorizonControls.vue';
+import JobSearchBar from '../components/JobSearchBar.vue';
 import JobsList from '../components/JobsList.vue';
 import QueueMetrics from '../components/QueueMetrics.vue';
 import { usePoll } from '@inertiajs/vue3';
@@ -47,7 +48,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const activePane = ref<'metrics' | 'jobs' | 'batches'>('jobs');
+const activePane = ref<'metrics' | 'jobs' | 'batches' | 'search'>('jobs');
 
 const pendingJobsCount = computed(() =>
     props.queueMetrics.workload.reduce(
@@ -162,6 +163,18 @@ usePoll(props.pollingInterval, {
                     type="button"
                     class="inline-flex items-center gap-2 rounded px-4 py-2 text-sm font-medium transition"
                     :class="
+                        activePane === 'search'
+                            ? 'bg-blue-600 text-white dark:bg-blue-500'
+                            : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
+                    "
+                    @click="activePane = 'search'"
+                >
+                    Search
+                </button>
+                <button
+                    type="button"
+                    class="inline-flex items-center gap-2 rounded px-4 py-2 text-sm font-medium transition"
+                    :class="
                         activePane === 'metrics'
                             ? 'bg-blue-600 text-white dark:bg-blue-500'
                             : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
@@ -237,6 +250,10 @@ usePoll(props.pollingInterval, {
                 <BatchesList
                     v-else-if="activePane === 'batches'"
                     :initial-batches="recentBatches"
+                    :routes="routes"
+                />
+                <JobSearchBar
+                    v-else-if="activePane === 'search'"
                     :routes="routes"
                 />
             </div>
