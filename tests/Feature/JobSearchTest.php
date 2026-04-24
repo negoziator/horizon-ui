@@ -1,6 +1,7 @@
 <?php
 
 use Laravel\Horizon\Contracts\JobRepository;
+use Mockery\MockInterface;
 use Negoziator\HorizonUi\Tests\TestCase;
 
 uses(TestCase::class);
@@ -8,34 +9,34 @@ uses(TestCase::class);
 function fakeJob(array $attrs = []): object
 {
     return (object) array_merge([
-        'id'          => 'uuid-'.uniqid(),
-        'name'        => 'App\\Jobs\\ProcessOrder',
+        'id' => 'uuid-'.uniqid(),
+        'name' => 'App\\Jobs\\ProcessOrder',
         'displayName' => 'App\\Jobs\\ProcessOrder',
-        'queue'       => 'default',
-        'status'      => 'completed',
-        'payload'     => json_encode(['orderId' => 42]),
-        'tags'        => '',
-        'failed_at'   => null,
+        'queue' => 'default',
+        'status' => 'completed',
+        'payload' => json_encode(['orderId' => 42]),
+        'tags' => '',
+        'failed_at' => null,
         'reserved_at' => null,
-        'pushedAt'    => 1714000000,
+        'pushedAt' => 1714000000,
     ], $attrs);
 }
 
-function bindJobsMock(array $methods = []): \Mockery\MockInterface
+function bindJobsMock(array $methods = []): MockInterface
 {
     $jobs = Mockery::mock(JobRepository::class);
 
     $defaults = [
         'countRecentlyFailed' => 0,
-        'countRecent'         => 0,
-        'countFailed'         => 0,
-        'countCompleted'      => 0,
-        'deleteFailed'        => null,
-        'purge'               => 0,
-        'getJobs'             => collect([]),
-        'getFailed'           => collect([]),
-        'getPending'          => collect([]),
-        'getRecent'           => collect([]),
+        'countRecent' => 0,
+        'countFailed' => 0,
+        'countCompleted' => 0,
+        'deleteFailed' => null,
+        'purge' => 0,
+        'getJobs' => collect([]),
+        'getFailed' => collect([]),
+        'getPending' => collect([]),
+        'getRecent' => collect([]),
     ];
 
     foreach ($defaults as $method => $return) {
@@ -55,11 +56,11 @@ function bindJobsMock(array $methods = []): \Mockery\MockInterface
     return $jobs;
 }
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->bindHorizonMocks();
 });
 
-it('returns matching jobs by class name', function () {
+it('returns matching jobs by class name', function (): void {
     $job = fakeJob(['displayName' => 'App\\Jobs\\SendEmail', 'name' => 'App\\Jobs\\SendEmail']);
 
     $jobs = bindJobsMock(['getRecent' => [collect([$job]), collect([])]]);
@@ -73,8 +74,8 @@ it('returns matching jobs by class name', function () {
     expect($response->json('query'))->toBe('sendemail');
 });
 
-it('filters by queue', function () {
-    $emailJob   = fakeJob(['queue' => 'emails',  'displayName' => 'App\\Jobs\\SendEmail', 'name' => 'App\\Jobs\\SendEmail']);
+it('filters by queue', function (): void {
+    $emailJob = fakeJob(['queue' => 'emails',  'displayName' => 'App\\Jobs\\SendEmail', 'name' => 'App\\Jobs\\SendEmail']);
     $defaultJob = fakeJob(['queue' => 'default', 'displayName' => 'App\\Jobs\\SendEmail', 'name' => 'App\\Jobs\\SendEmail']);
 
     $jobs = bindJobsMock(['getRecent' => [collect([$emailJob, $defaultJob]), collect([])]]);
@@ -87,7 +88,7 @@ it('filters by queue', function () {
     expect($response->json('data.0.queue'))->toBe('emails');
 });
 
-it('searches inside payload content', function () {
+it('searches inside payload content', function (): void {
     $job = fakeJob([
         'payload' => json_encode(['recipient' => 'alice@example.com', 'subject' => 'Hello']),
     ]);
@@ -101,7 +102,7 @@ it('searches inside payload content', function () {
     expect($response->json('data'))->toHaveCount(1);
 });
 
-it('returns empty results for no match', function () {
+it('returns empty results for no match', function (): void {
     $job = fakeJob(['displayName' => 'App\\Jobs\\ProcessOrder', 'name' => 'App\\Jobs\\ProcessOrder']);
 
     $jobs = bindJobsMock(['getRecent' => [collect([$job]), collect([])]]);
@@ -114,7 +115,7 @@ it('returns empty results for no match', function () {
     expect($response->json('next_cursor'))->toBeNull();
 });
 
-it('respects the limit parameter', function () {
+it('respects the limit parameter', function (): void {
     $jobs = bindJobsMock(['getRecent' => [
         collect([
             fakeJob(['displayName' => 'App\\Jobs\\ProcessOrder', 'name' => 'App\\Jobs\\ProcessOrder']),
@@ -131,7 +132,7 @@ it('respects the limit parameter', function () {
     expect($response->json('data'))->toHaveCount(2);
 });
 
-it('paginates via cursor', function () {
+it('paginates via cursor', function (): void {
     $job = fakeJob();
 
     $jobs = bindJobsMock(['getRecent' => [collect([$job]), collect([])]]);
@@ -147,7 +148,7 @@ it('paginates via cursor', function () {
     expect($response->json('next_cursor'))->toBeNull();
 });
 
-it('returns a next_cursor when results fill the limit', function () {
+it('returns a next_cursor when results fill the limit', function (): void {
     $batch = collect(array_map(fn () => fakeJob(), range(1, 200)));
 
     $jobs = bindJobsMock(['getRecent' => [collect($batch->all()), collect([])]]);
@@ -160,21 +161,21 @@ it('returns a next_cursor when results fill the limit', function () {
     expect($response->json('next_cursor'))->toBe(200);
 });
 
-it('rejects queries shorter than 2 characters', function () {
+it('rejects queries shorter than 2 characters', function (): void {
     $response = $this->getJson('/horizon-ui/api/jobs/search?q=x');
 
     $response->assertUnprocessable()
         ->assertJsonValidationErrors(['q']);
 });
 
-it('rejects missing query parameter', function () {
+it('rejects missing query parameter', function (): void {
     $response = $this->getJson('/horizon-ui/api/jobs/search');
 
     $response->assertUnprocessable()
         ->assertJsonValidationErrors(['q']);
 });
 
-it('searches failed jobs when type is failed', function () {
+it('searches failed jobs when type is failed', function (): void {
     $job = fakeJob(['status' => 'failed', 'failed_at' => '2024-04-25 10:00:00']);
 
     $jobs = bindJobsMock(['getFailed' => [collect([$job]), collect([])]]);
@@ -187,7 +188,7 @@ it('searches failed jobs when type is failed', function () {
     expect($response->json('data.0.status'))->toBe('failed');
 });
 
-it('searches pending jobs when type is pending', function () {
+it('searches pending jobs when type is pending', function (): void {
     $job = fakeJob(['status' => 'pending', 'queue' => 'high']);
 
     $jobs = bindJobsMock(['getPending' => [collect([$job]), collect([])]]);

@@ -7,24 +7,25 @@ use Laravel\Horizon\Contracts\JobRepository;
 class HorizonJobSearchService
 {
     private const FETCH_WINDOW = 200;
-    private const MAX_LIMIT    = 100;
+
+    private const MAX_LIMIT = 100;
 
     public function __construct(protected JobRepository $jobs) {}
 
     public function search(
         string $query,
-        string $type    = 'recent',
-        ?string $queue  = null,
-        int $limit      = 25,
-        int $cursor     = 0,
+        string $type = 'recent',
+        ?string $queue = null,
+        int $limit = 25,
+        int $cursor = 0,
     ): array {
-        $limit     = min($limit, self::MAX_LIMIT);
-        $query     = mb_strtolower(trim($query));
-        $method    = $this->resolveMethod($type);
+        $limit = min($limit, self::MAX_LIMIT);
+        $query = mb_strtolower(trim($query));
+        $method = $this->resolveMethod($type);
         $scanLimit = (int) config('horizon-ui.search.scan_limit', 1000);
 
-        $results      = [];
-        $offset       = $cursor;
+        $results = [];
+        $offset = $cursor;
         $totalScanned = 0;
 
         while (count($results) < $limit && $totalScanned < $scanLimit) {
@@ -49,20 +50,20 @@ class HorizonJobSearchService
         }
 
         return [
-            'data'          => $results,
-            'next_cursor'   => $offset,
+            'data' => $results,
+            'next_cursor' => $offset,
             'total_scanned' => $totalScanned,
-            'query'         => $query,
+            'query' => $query,
         ];
     }
 
     private function resolveMethod(string $type): string
     {
         return match ($type) {
-            'failed'    => 'getFailed',
-            'pending'   => 'getPending',
+            'failed' => 'getFailed',
+            'pending' => 'getPending',
             'completed' => 'getRecent',
-            default     => 'getRecent',
+            default => 'getRecent',
         };
     }
 
@@ -123,15 +124,15 @@ class HorizonJobSearchService
         $payload = json_decode($job->payload ?? '{}', associative: true) ?? [];
 
         return [
-            'id'          => $job->id,
-            'name'        => $job->displayName ?? $job->name ?? 'Unknown',
-            'queue'       => $job->queue ?? 'default',
-            'status'      => $job->status ?? 'unknown',
-            'payload'     => $payload['data']['command'] ?? $payload,
-            'tags'        => $job->tags ?? '',
-            'failed_at'   => $job->failed_at ?? null,
+            'id' => $job->id,
+            'name' => $job->displayName ?? $job->name ?? 'Unknown',
+            'queue' => $job->queue ?? 'default',
+            'status' => $job->status ?? 'unknown',
+            'payload' => $payload['data']['command'] ?? $payload,
+            'tags' => $job->tags ?? '',
+            'failed_at' => $job->failed_at ?? null,
             'reserved_at' => $job->reserved_at ?? null,
-            'created_at'  => $job->pushedAt ?? null,
+            'created_at' => $job->pushedAt ?? null,
         ];
     }
 }

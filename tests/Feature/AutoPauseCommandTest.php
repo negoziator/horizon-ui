@@ -11,21 +11,22 @@ uses(TestCase::class);
 
 function makeSupervisor(string $name, string $status, array $queues = ['default']): stdClass
 {
-    $supervisor = new stdClass();
+    $supervisor = new stdClass;
     $supervisor->name = 'app:'.$name;
     $supervisor->status = $status;
     $supervisor->options = ['connection' => 'redis', 'queue' => $queues];
     $supervisor->processes = []; // empty — resolveQueues() falls back to options.queue
+
     return $supervisor;
 }
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Stub the Queue facade so countPendingJobs() doesn't need real Redis
     Queue::shouldReceive('connection')->andReturnSelf()->byDefault();
     Queue::shouldReceive('size')->andReturn(0)->byDefault();
 });
 
-it('pauses idle running supervisors', function () {
+it('pauses idle running supervisors', function (): void {
     $supervisor = makeSupervisor('default', 'running');
 
     $repository = Mockery::mock(SupervisorRepository::class);
@@ -45,7 +46,7 @@ it('pauses idle running supervisors', function () {
     $this->artisan('horizon-ui:auto-pause')->assertSuccessful();
 });
 
-it('resumes paused supervisors that have pending jobs', function () {
+it('resumes paused supervisors that have pending jobs', function (): void {
     $supervisor = makeSupervisor('default', 'paused');
 
     $repository = Mockery::mock(SupervisorRepository::class);
@@ -65,7 +66,7 @@ it('resumes paused supervisors that have pending jobs', function () {
     $this->artisan('horizon-ui:auto-pause')->assertSuccessful();
 });
 
-it('does nothing when no supervisors are registered', function () {
+it('does nothing when no supervisors are registered', function (): void {
     $repository = Mockery::mock(SupervisorRepository::class);
     $repository->expects('all')->andReturn([]);
 
@@ -78,7 +79,7 @@ it('does nothing when no supervisors are registered', function () {
     $this->artisan('horizon-ui:auto-pause')->assertSuccessful();
 });
 
-it('does not pause an already paused supervisor', function () {
+it('does not pause an already paused supervisor', function (): void {
     $supervisor = makeSupervisor('default', 'paused');
 
     $repository = Mockery::mock(SupervisorRepository::class);
@@ -96,7 +97,7 @@ it('does not pause an already paused supervisor', function () {
     $this->artisan('horizon-ui:auto-pause')->assertSuccessful();
 });
 
-it('does not resume a running supervisor that already has jobs', function () {
+it('does not resume a running supervisor that already has jobs', function (): void {
     $supervisor = makeSupervisor('default', 'running');
 
     $repository = Mockery::mock(SupervisorRepository::class);
@@ -114,7 +115,7 @@ it('does not resume a running supervisor that already has jobs', function () {
     $this->artisan('horizon-ui:auto-pause')->assertSuccessful();
 });
 
-it('resolves queues from processes map when available', function () {
+it('resolves queues from processes map when available', function (): void {
     $supervisor = makeSupervisor('default', 'running');
     $supervisor->processes = ['redis:high' => 2, 'redis:default' => 3];
 

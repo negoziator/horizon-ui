@@ -6,8 +6,9 @@ use Negoziator\HorizonUi\Tests\TestCase;
 
 uses(TestCase::class);
 
-beforeEach(function () {
-    $this->app->instance(HorizonDashboardView::class, new class implements HorizonDashboardView {
+beforeEach(function (): void {
+    $this->app->instance(HorizonDashboardView::class, new class implements HorizonDashboardView
+    {
         public function stats(): array
         {
             return [
@@ -44,7 +45,7 @@ beforeEach(function () {
     });
 });
 
-it('renders the dashboard page', function () {
+it('renders the dashboard page', function (): void {
     $response = $this->get('/horizon-ui');
 
     $response->assertOk();
@@ -53,7 +54,7 @@ it('renders the dashboard page', function () {
     );
 });
 
-it('passes routes prop with all expected keys', function () {
+it('passes routes prop with all expected keys', function (): void {
     $response = $this->get('/horizon-ui');
 
     $response->assertInertia(fn (AssertableInertia $page) => $page
@@ -76,7 +77,7 @@ it('passes routes prop with all expected keys', function () {
     );
 });
 
-it('passes polling interval prop', function () {
+it('passes polling interval prop', function (): void {
     config(['horizon-ui.polling_interval' => 5000]);
 
     $response = $this->get('/horizon-ui');
@@ -86,7 +87,7 @@ it('passes polling interval prop', function () {
     );
 });
 
-it('passes all horizon data props', function () {
+it('passes all horizon data props', function (): void {
     $response = $this->get('/horizon-ui');
 
     $response->assertInertia(fn (AssertableInertia $page) => $page
@@ -98,7 +99,7 @@ it('passes all horizon data props', function () {
     );
 });
 
-it('respects view config', function () {
+it('respects view config', function (): void {
     config(['horizon-ui.view' => 'CustomHorizonPage']);
 
     $response = $this->get('/horizon-ui');
@@ -108,7 +109,7 @@ it('respects view config', function () {
     );
 });
 
-it('routes contain the correct path prefix', function () {
+it('routes contain the correct path prefix', function (): void {
     // buildRouteMap() reads config at request time, so changing it before
     // the request is enough — the route itself stays registered at /horizon-ui.
     config(['horizon-ui.path' => 'custom-horizon']);

@@ -273,18 +273,18 @@ class HorizonApiController extends Controller
     public function searchJobs(Request $request, HorizonJobSearchService $search): JsonResponse
     {
         $request->validate([
-            'q'      => 'required|string|min:2|max:200',
-            'type'   => 'nullable|in:recent,failed,pending,completed',
-            'queue'  => 'nullable|string|max:100',
-            'limit'  => 'nullable|integer|min:1|max:100',
+            'q' => 'required|string|min:2|max:200',
+            'type' => 'nullable|in:recent,failed,pending,completed',
+            'queue' => 'nullable|string|max:100',
+            'limit' => 'nullable|integer|min:1|max:100',
             'cursor' => 'nullable|integer|min:0',
         ]);
 
         $results = $search->search(
-            query:  $request->string('q')->toString(),
-            type:   $request->input('type', 'recent'),
-            queue:  $request->input('queue'),
-            limit:  (int) $request->input('limit', 25),
+            query: $request->string('q')->toString(),
+            type: $request->input('type', 'recent'),
+            queue: $request->input('queue'),
+            limit: (int) $request->input('limit', 25),
             cursor: (int) $request->input('cursor', 0),
         );
 
