@@ -48,6 +48,16 @@ return [
      * memory exhaustion on very large queues.
      */
     'search' => [
+        /*
+         * Default number of results returned per search request.
+         * Can be overridden per-request with the ?limit= parameter (max 100).
+         */
+        'page_size' => 25,
+
+        /*
+         * Maximum number of jobs scanned per search request.
+         * Higher values find more results but use more memory.
+         */
         'scan_limit' => 1000,
     ],
 ];

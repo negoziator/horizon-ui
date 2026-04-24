@@ -6,10 +6,7 @@ use Laravel\Horizon\Contracts\JobRepository;
 
 class HorizonJobSearchService
 {
-    // Horizon's getJobsByType always returns 50 items per page (hardcoded in RedisJobRepository).
-    private const HORIZON_PAGE_SIZE = 50;
-
-    private const MAX_LIMIT = 100;
+    private const int MAX_LIMIT = 100;
 
     public function __construct(protected JobRepository $jobs) {}
 
@@ -17,10 +14,10 @@ class HorizonJobSearchService
         string $query,
         string $type = 'recent',
         ?string $queue = null,
-        int $limit = 25,
+        ?int $limit = null,
         int $cursor = 0,
     ): array {
-        $limit = min($limit, self::MAX_LIMIT);
+        $limit = min($limit ?? (int) config('horizon-ui.search.page_size', 25), self::MAX_LIMIT);
         $query = mb_strtolower(trim($query));
         $method = $this->resolveMethod($type);
         $scanLimit = (int) config('horizon-ui.search.scan_limit', 1000);
@@ -41,17 +38,19 @@ class HorizonJobSearchService
                 break;
             }
 
+            $batchPos = 0;
             foreach ($batch as $job) {
                 $totalScanned++;
                 if ($this->matches($job, $query, $queue)) {
                     $results[] = $this->formatJob($job);
                 }
+                $batchPos++;
                 if (count($results) >= $limit) {
                     break;
                 }
             }
 
-            $position += self::HORIZON_PAGE_SIZE;
+            $position += $batchPos;
         }
 
         return [

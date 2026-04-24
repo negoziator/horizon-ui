@@ -170,7 +170,7 @@ GET /{path}/api/jobs/search
 | `q` | string | — | Search term (required, min 2 chars) |
 | `type` | string | `recent` | Job set: `recent`, `failed`, `pending`, `completed` |
 | `queue` | string | — | Restrict to a specific queue name |
-| `limit` | int | `25` | Max results to return (max `100`) |
+| `limit` | int | `search.page_size` | Max results to return (max `100`) |
 | `cursor` | int | `0` | Offset to resume from (use `next_cursor` from the previous response) |
 
 The response includes a `next_cursor` value for fetching the next page; it is `null` when results are exhausted.
@@ -183,12 +183,13 @@ axios.get(props.routes.jobSearch, { params: { q: 'SendEmail', type: 'failed' } }
 
 ### Search performance
 
-The search scans jobs in windows of 200, stopping once the requested number of results is found or the configured scan ceiling is reached. For large queues, keep queries specific and use the `queue` filter to narrow the scan.
+The search fetches jobs from Horizon's Redis sorted sets in pages of 50 (Horizon's fixed page size), stopping once the requested number of results is found or the configured scan ceiling is reached. For large queues, keep queries specific and use the `queue` filter to narrow the scan.
 
-The scan ceiling is configurable in `config/horizon-ui.php`:
+Both the default page size and the scan ceiling are configurable in `config/horizon-ui.php`:
 
 ```php
 'search' => [
+    'page_size'  => 25,   // default results per request (overridable via ?limit=)
     'scan_limit' => 1000, // max jobs scanned per request
 ],
 ```
