@@ -3,6 +3,7 @@
 namespace Negoziator\HorizonUi\Tests;
 
 use Illuminate\Bus\BatchRepository;
+use Inertia\ServiceProvider;
 use Laravel\Horizon\Contracts\HorizonCommandQueue;
 use Laravel\Horizon\Contracts\JobRepository;
 use Laravel\Horizon\Contracts\MasterSupervisorRepository;
@@ -19,7 +20,7 @@ class TestCase extends Orchestra
     protected function getPackageProviders($app): array
     {
         return [
-            \Inertia\ServiceProvider::class,
+            ServiceProvider::class,
             HorizonUiServiceProvider::class,
         ];
     }

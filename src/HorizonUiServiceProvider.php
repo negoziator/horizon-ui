@@ -19,7 +19,7 @@ class HorizonUiServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasRoutes(['horizon-ui'])
             ->hasCommand(AutoPauseHorizonSupervisors::class)
-            ->hasInstallCommand(function ($command) {
+            ->hasInstallCommand(function ($command): void {
                 $command
                     ->publishConfigFile()
                     ->endWith(function ($cmd): void {

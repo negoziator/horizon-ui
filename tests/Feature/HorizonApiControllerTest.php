@@ -4,11 +4,11 @@ use Negoziator\HorizonUi\Tests\TestCase;
 
 uses(TestCase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->bindHorizonMocks();
 });
 
-it('returns stats', function () {
+it('returns stats', function (): void {
     $response = $this->getJson('/horizon-ui/api/stats');
 
     $response->assertOk()
@@ -25,19 +25,19 @@ it('returns stats', function () {
     expect($response->json('status'))->toBe('inactive');
 });
 
-it('can pause horizon', function () {
+it('can pause horizon', function (): void {
     $response = $this->post('/horizon-ui/api/pause');
 
     $response->assertRedirect();
 });
 
-it('can continue horizon', function () {
+it('can continue horizon', function (): void {
     $response = $this->post('/horizon-ui/api/continue');
 
     $response->assertRedirect();
 });
 
-it('can get jobs by type', function () {
+it('can get jobs by type', function (): void {
     $response = $this->getJson('/horizon-ui/api/jobs/pending');
 
     $response->assertOk()
@@ -47,21 +47,21 @@ it('can get jobs by type', function () {
     expect($response->json('jobs'))->toBeArray();
 });
 
-it('returns empty jobs for unknown type', function () {
+it('returns empty jobs for unknown type', function (): void {
     $response = $this->getJson('/horizon-ui/api/jobs/unknown');
 
     $response->assertOk();
     expect($response->json('jobs'))->toBeEmpty();
 });
 
-it('can get batches', function () {
+it('can get batches', function (): void {
     $response = $this->getJson('/horizon-ui/api/batches');
 
     $response->assertOk()
         ->assertJsonStructure(['batches']);
 });
 
-it('defaults to auth middleware for security', function () {
+it('defaults to auth middleware for security', function (): void {
     // Routes are registered using config('horizon-ui.middleware').
     // The published default includes 'auth' to protect the dashboard.
     $defaultMiddleware = require __DIR__.'/../../config/horizon-ui.php';
