@@ -37,6 +37,7 @@ function bindJobsMock(array $methods = []): MockInterface
         'getFailed' => collect([]),
         'getPending' => collect([]),
         'getRecent' => collect([]),
+        'getCompleted' => collect([]),
     ];
 
     foreach ($defaults as $method => $return) {
@@ -149,7 +150,9 @@ it('paginates via cursor', function (): void {
 });
 
 it('returns a next_cursor when results fill the limit', function (): void {
-    $batch = collect(array_map(fn () => fakeJob(), range(1, 200)));
+    // Horizon returns 50 per page; fill one page with matching jobs so the
+    // limit is reached before the batch is exhausted.
+    $batch = collect(array_map(fn () => fakeJob(), range(1, 50)));
 
     $jobs = bindJobsMock(['getRecent' => [collect($batch->all()), collect([])]]);
     $this->app->instance(JobRepository::class, $jobs);
@@ -158,7 +161,8 @@ it('returns a next_cursor when results fill the limit', function (): void {
 
     $response->assertOk();
     expect($response->json('data'))->toHaveCount(25);
-    expect($response->json('next_cursor'))->toBe(200);
+    // After one Horizon page (50 items) position advances to 50.
+    expect($response->json('next_cursor'))->toBe(50);
 });
 
 it('rejects queries shorter than 2 characters', function (): void {

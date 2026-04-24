@@ -63,6 +63,7 @@ class TestCase extends Orchestra
         $jobs->allows('getFailed')->andReturn(collect([]));
         $jobs->allows('getPending')->andReturn(collect([]));
         $jobs->allows('getRecent')->andReturn(collect([]));
+        $jobs->allows('getCompleted')->andReturn(collect([]));
         $jobs->allows('getJobs')->andReturn(collect([]));
         $jobs->allows('deleteFailed')->andReturn(null);
         $jobs->allows('purge')->andReturn(0);
