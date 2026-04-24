@@ -12,5 +12,5 @@ vendor
 .phpunit.cache
 
 CLAUDE.md
-HORIZON_UI_PACKAGE_PLAN.md
 .mcp.json
+internal
