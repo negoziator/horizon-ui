@@ -21,6 +21,7 @@ use Laravel\Horizon\SupervisorCommands\ContinueWorking;
 use Laravel\Horizon\SupervisorCommands\Pause;
 use Laravel\Horizon\SupervisorCommands\Terminate;
 use Laravel\Horizon\WaitTimeCalculator;
+use Negoziator\HorizonUi\Services\HorizonJobSearchService;
 
 class HorizonApiController extends Controller
 {
@@ -264,6 +265,30 @@ class HorizonApiController extends Controller
                 ],
             ],
         ]);
+    }
+
+    /**
+     * Search jobs across name, queue, tags, and payload.
+     */
+    public function searchJobs(Request $request, HorizonJobSearchService $search): JsonResponse
+    {
+        $request->validate([
+            'q'      => 'required|string|min:2|max:200',
+            'type'   => 'nullable|in:recent,failed,pending,completed',
+            'queue'  => 'nullable|string|max:100',
+            'limit'  => 'nullable|integer|min:1|max:100',
+            'cursor' => 'nullable|integer|min:0',
+        ]);
+
+        $results = $search->search(
+            query:  $request->string('q')->toString(),
+            type:   $request->input('type', 'recent'),
+            queue:  $request->input('queue'),
+            limit:  (int) $request->input('limit', 25),
+            cursor: (int) $request->input('cursor', 0),
+        );
+
+        return response()->json($results);
     }
 
     /**
