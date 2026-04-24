@@ -4,7 +4,6 @@
 build
 composer.lock
 coverage
-phpunit.xml
 psalm.xml
 testbench.yaml
 tests/temp
