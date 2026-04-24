@@ -6,7 +6,8 @@ use Laravel\Horizon\Contracts\JobRepository;
 
 class HorizonJobSearchService
 {
-    private const FETCH_WINDOW = 200;
+    // Horizon's getJobsByType always returns 50 items per page (hardcoded in RedisJobRepository).
+    private const HORIZON_PAGE_SIZE = 50;
 
     private const MAX_LIMIT = 100;
 
@@ -25,14 +26,18 @@ class HorizonJobSearchService
         $scanLimit = (int) config('horizon-ui.search.scan_limit', 1000);
 
         $results = [];
-        $offset = $cursor;
+        // $cursor is a 0-based position in the Redis sorted set.
+        // Horizon's $afterIndex is cursor - 1 (null when cursor === 0).
+        $position = $cursor;
         $totalScanned = 0;
+        $exhausted = false;
 
         while (count($results) < $limit && $totalScanned < $scanLimit) {
-            $batch = collect($this->jobs->{$method}(null, $offset, self::FETCH_WINDOW));
+            $afterIndex = $position === 0 ? null : $position - 1;
+            $batch = collect($this->jobs->{$method}($afterIndex));
 
             if ($batch->isEmpty()) {
-                $offset = null;
+                $exhausted = true;
                 break;
             }
 
@@ -46,12 +51,12 @@ class HorizonJobSearchService
                 }
             }
 
-            $offset += self::FETCH_WINDOW;
+            $position += self::HORIZON_PAGE_SIZE;
         }
 
         return [
             'data' => $results,
-            'next_cursor' => $offset,
+            'next_cursor' => $exhausted ? null : $position,
             'total_scanned' => $totalScanned,
             'query' => $query,
         ];
@@ -62,7 +67,7 @@ class HorizonJobSearchService
         return match ($type) {
             'failed' => 'getFailed',
             'pending' => 'getPending',
-            'completed' => 'getRecent',
+            'completed' => 'getCompleted',
             default => 'getRecent',
         };
     }
