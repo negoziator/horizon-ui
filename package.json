@@ -4,7 +4,7 @@
     "description": "Vue components for the horizon-ui Laravel package",
     "peerDependencies": {
         "@inertiajs/vue3": ">=1.0",
-        "@reka-ui/vue": ">=2.0",
+        "reka-ui": ">=2.0",
         "lucide-vue-next": ">=0.400",
         "vue": ">=3.3"
     }
