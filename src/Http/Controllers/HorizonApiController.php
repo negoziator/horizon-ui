@@ -284,7 +284,7 @@ class HorizonApiController extends Controller
             query: $request->string('q')->toString(),
             type: $request->input('type', 'recent'),
             queue: $request->input('queue'),
-            limit: (int) $request->input('limit', 25),
+            limit: $request->has('limit') ? (int) $request->input('limit') : null,
             cursor: (int) $request->input('cursor', 0),
         );
 

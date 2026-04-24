@@ -161,8 +161,8 @@ it('returns a next_cursor when results fill the limit', function (): void {
 
     $response->assertOk();
     expect($response->json('data'))->toHaveCount(25);
-    // After one Horizon page (50 items) position advances to 50.
-    expect($response->json('next_cursor'))->toBe(50);
+    // Stopped after consuming 25 of 50 items in the batch, so cursor is 25.
+    expect($response->json('next_cursor'))->toBe(25);
 });
 
 it('rejects queries shorter than 2 characters', function (): void {
