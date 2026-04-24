@@ -24,7 +24,7 @@ Features at a glance:
 | **Frontend** | |
 | Vue | ^3.0 |
 | Tailwind CSS | **v4** |
-| @reka-ui/vue | ^2.0 |
+| reka-ui | ^2.0 |
 | lucide-vue-next | ^0.400+ |
 
 > **Tailwind v4 only.** The bundled components use v4 utility classes. If your app runs Tailwind v3 you will need to publish and adjust the components.
@@ -40,10 +40,10 @@ php artisan horizon-ui:install
 
 ### Frontend peer dependencies
 
-The bundled Vue components require `@reka-ui/vue` and `lucide-vue-next`. Install them alongside your other frontend dependencies:
+The bundled Vue components require `reka-ui` and `lucide-vue-next`. Install them alongside your other frontend dependencies:
 
 ```bash
-npm install @reka-ui/vue lucide-vue-next
+npm install reka-ui lucide-vue-next
 ```
 
 ### Inertia page resolution
@@ -54,16 +54,18 @@ The `HorizonDashboard` Inertia component is placed in `resources/js/vendor/horiz
 // at the top of app.ts:
 // import type { DefineComponent } from 'vue';
 
-resolve: (name) => {
-    const appPages = import.meta.glob<DefineComponent>('./pages/**/*.vue');
+resolve: async (name) => {
     const vendorPages = import.meta.glob<DefineComponent>('./vendor/horizon-ui/pages/**/*.vue');
     const vendorPath = `./vendor/horizon-ui/pages/${name}.vue`;
 
     if (vendorPath in vendorPages) {
-        return resolvePageComponent(vendorPath, vendorPages);
+        return await resolvePageComponent(vendorPath, vendorPages);
     }
 
-    return resolvePageComponent(`./pages/${name}.vue`, appPages);
+    return await resolvePageComponent(
+        `./pages/${name}.vue`,
+        import.meta.glob<DefineComponent>('./pages/**/*.vue'),
+    );
 },
 ```
 
