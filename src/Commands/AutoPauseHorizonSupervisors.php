@@ -11,10 +11,8 @@ use Laravel\Horizon\SupervisorCommands\Pause;
 
 class AutoPauseHorizonSupervisors extends Command
 {
-    #[\Override]
     protected $signature = 'horizon-ui:auto-pause';
 
-    #[\Override]
     protected $description = 'Auto-pause idle Horizon supervisors and resume those with pending jobs';
 
     public function handle(SupervisorRepository $repository, HorizonCommandQueue $commandQueue): int
