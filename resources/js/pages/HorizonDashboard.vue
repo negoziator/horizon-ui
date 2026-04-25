@@ -78,7 +78,7 @@ usePoll(props.pollingInterval, {
     >
         <!-- Header Section -->
         <section
-            class="rounded-lg border border-sidebar-border/70 bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800 p-6 text-white shadow-2xl dark:from-neutral-900 dark:via-black dark:to-neutral-950"
+            class="rounded-lg border border-neutral-200/70 bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800 p-6 text-white shadow-2xl dark:border-neutral-800/70 dark:from-neutral-900 dark:via-black dark:to-neutral-950"
         >
             <p class="text-sm tracking-[0.35em] text-neutral-400 uppercase">
                 Queue Management
@@ -96,7 +96,8 @@ usePoll(props.pollingInterval, {
 
         <!-- Horizon panel -->
         <div
-            class="rounded-lg border border-sidebar-border/70 bg-white/80 backdrop-blur dark:bg-black/40"
+            class="rounded-lg border border-sidebar-border/70 bg-white dark:bg-neutral-900"
+            class="rounded-lg border border-neutral-200/70 bg-white/80 backdrop-blur dark:border-neutral-800/70 dark:bg-black/40"
         >
             <!-- Tabs -->
             <div
