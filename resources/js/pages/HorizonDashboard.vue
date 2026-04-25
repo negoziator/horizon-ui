@@ -96,7 +96,7 @@ usePoll(props.pollingInterval, {
 
         <!-- Horizon panel -->
         <div
-            class="rounded-lg border border-sidebar-border/70 bg-white/80 backdrop-blur dark:bg-black/40"
+            class="rounded-lg border border-sidebar-border/70 bg-white dark:bg-neutral-900"
         >
             <!-- Tabs -->
             <div

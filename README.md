@@ -46,6 +46,23 @@ The bundled Vue components require `reka-ui` and `lucide-vue-next`. Install them
 npm install reka-ui lucide-vue-next
 ```
 
+### Tailwind v4 setup
+
+The bundled components use `dark:` utility variants, but Tailwind v4 does not register a `dark` variant out of the box — you have to declare one yourself. Add it to your Tailwind entry point (typically `resources/css/app.css`) so the dashboard responds to OS-level dark-mode preference:
+
+```css
+@import "tailwindcss";
+@custom-variant dark (@media (prefers-color-scheme: dark));
+```
+
+If your app uses a class-based dark-mode toggle (`<html class="dark">`) instead, declare the variant accordingly:
+
+```css
+@custom-variant dark (&:where(.dark, .dark *));
+```
+
+Without one of these declarations, the dashboard renders in light mode regardless of OS preference.
+
 ### Inertia page resolution
 
 The `HorizonDashboard` Inertia component is placed in `resources/js/vendor/horizon-ui/pages/` (done automatically by `horizon-ui:install`). Vite's `import.meta.glob` doesn't scan that path by default, so you need to add it to your resolve function in `app.ts` (or `app.js`):
