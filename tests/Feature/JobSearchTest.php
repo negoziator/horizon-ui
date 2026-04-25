@@ -30,6 +30,7 @@ function bindJobsMock(array $methods = []): MockInterface
         'countRecentlyFailed' => 0,
         'countRecent' => 0,
         'countFailed' => 0,
+        'countPending' => 0,
         'countCompleted' => 0,
         'deleteFailed' => null,
         'purge' => 0,
@@ -142,11 +143,70 @@ it('paginates via cursor', function (): void {
     $response = $this->getJson('/horizon-ui/api/jobs/search?q=processorder');
 
     $response->assertOk()
-        ->assertJsonStructure(['data', 'next_cursor', 'total_scanned', 'query']);
+        ->assertJsonStructure([
+            'data',
+            'next_cursor',
+            'total_scanned',
+            'total_set_size',
+            'estimated_total',
+            'exhausted',
+            'query',
+        ]);
 
     expect($response->json('total_scanned'))->toBe(1);
     // next_cursor is null because the second batch was empty (exhausted)
     expect($response->json('next_cursor'))->toBeNull();
+    expect($response->json('exhausted'))->toBeTrue();
+});
+
+it('returns estimated_total and total_set_size when not exhausted', function (): void {
+    // 50 matching jobs in a single batch; limit 25 stops before the batch ends,
+    // so the search is not exhausted and the estimate reflects the full set size.
+    $batch = collect(array_map(fn () => fakeJob(), range(1, 50)));
+
+    $jobs = bindJobsMock([
+        'countRecent' => 10_000,
+        'getRecent' => [collect($batch->all()), collect([])],
+    ]);
+    $this->app->instance(JobRepository::class, $jobs);
+
+    $response = $this->getJson('/horizon-ui/api/jobs/search?q=processorder&limit=25');
+
+    $response->assertOk();
+    expect($response->json('exhausted'))->toBeFalse();
+    expect($response->json('total_set_size'))->toBe(10_000);
+    // 25 matches out of 25 scanned = 100% match rate → estimate equals set size.
+    expect($response->json('estimated_total'))->toBe(10_000);
+});
+
+it('reports exhausted true with exact estimated_total on the final page', function (): void {
+    $job = fakeJob();
+
+    $jobs = bindJobsMock([
+        'countRecent' => 42,
+        'getRecent' => [collect([$job]), collect([])],
+    ]);
+    $this->app->instance(JobRepository::class, $jobs);
+
+    $response = $this->getJson('/horizon-ui/api/jobs/search?q=processorder');
+
+    $response->assertOk();
+    expect($response->json('exhausted'))->toBeTrue();
+    expect($response->json('total_set_size'))->toBe(42);
+    // 1 match out of 1 scanned = 100% → estimate equals set size.
+    expect($response->json('estimated_total'))->toBe(42);
+});
+
+it('reports zero estimated_total when no jobs are scanned', function (): void {
+    $jobs = bindJobsMock(['getRecent' => collect([])]);
+    $this->app->instance(JobRepository::class, $jobs);
+
+    $response = $this->getJson('/horizon-ui/api/jobs/search?q=processorder');
+
+    $response->assertOk();
+    expect($response->json('total_scanned'))->toBe(0);
+    expect($response->json('estimated_total'))->toBe(0);
+    expect($response->json('exhausted'))->toBeTrue();
 });
 
 it('returns a next_cursor when results fill the limit', function (): void {

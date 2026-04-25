@@ -55,6 +55,11 @@ const queue = ref('');
 const results = ref<SearchResult[]>([]);
 const nextCursor = ref<number | null>(null);
 const totalScanned = ref(0);
+const accumulatedMatches = ref(0);
+const isExhausted = ref(false);
+const estimatedTotal = ref(0);
+const totalSetSize = ref(0);
+const lastQuery = ref('');
 const searching = ref(false);
 const loadingMore = ref(false);
 const searched = ref(false);
@@ -76,6 +81,10 @@ const doSearch = async (append = false) => {
         results.value = [];
         nextCursor.value = null;
         totalScanned.value = 0;
+        accumulatedMatches.value = 0;
+        isExhausted.value = false;
+        estimatedTotal.value = 0;
+        totalSetSize.value = 0;
         expandedId.value = null;
         jobDetail.value = null;
         searched.value = false;
@@ -95,6 +104,13 @@ const doSearch = async (append = false) => {
         results.value = append ? [...results.value, ...data.data] : data.data;
         nextCursor.value = data.next_cursor;
         totalScanned.value += data.total_scanned;
+        accumulatedMatches.value = append
+            ? accumulatedMatches.value + data.data.length
+            : data.data.length;
+        isExhausted.value = Boolean(data.exhausted);
+        estimatedTotal.value = data.estimated_total ?? 0;
+        totalSetSize.value = data.total_set_size ?? 0;
+        lastQuery.value = data.query ?? '';
         searched.value = true;
     } catch {
         error.value = 'Search failed. Please try again.';
@@ -222,11 +238,18 @@ const getExceptionSummary = (exception: string) => {
             v-else-if="searched"
             class="mb-4 text-sm text-neutral-500 dark:text-neutral-400"
         >
-            <span v-if="results.length > 0">
-                {{ results.length }} result{{ results.length !== 1 ? 's' : '' }} —
-                scanned {{ totalScanned }} job{{ totalScanned !== 1 ? 's' : '' }}
+            <span v-if="accumulatedMatches === 0">
+                No results — scanned {{ totalScanned }} job{{ totalScanned !== 1 ? 's' : '' }}
             </span>
-            <span v-else>No results — scanned {{ totalScanned }} jobs</span>
+            <span v-else-if="isExhausted">
+                {{ accumulatedMatches }} job{{ accumulatedMatches !== 1 ? 's' : '' }} found
+            </span>
+            <span v-else>
+                ≥ {{ accumulatedMatches }} found
+                <span class="text-neutral-500">
+                    (estimate: ~{{ estimatedTotal }} of {{ totalSetSize }})
+                </span>
+            </span>
         </div>
         <div
             v-else-if="query.length > 0 && query.length < 2"

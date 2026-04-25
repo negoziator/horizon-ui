@@ -53,10 +53,17 @@ class HorizonJobSearchService
             $position += $batchPos;
         }
 
+        $totalInSet = $this->resolveTotalCount($type);
+        $matchRate = $totalScanned > 0 ? count($results) / $totalScanned : 0.0;
+        $estimatedTotal = (int) round($totalInSet * $matchRate);
+
         return [
             'data' => $results,
             'next_cursor' => $exhausted ? null : $position,
             'total_scanned' => $totalScanned,
+            'total_set_size' => $totalInSet,
+            'estimated_total' => $estimatedTotal,
+            'exhausted' => $exhausted,
             'query' => $query,
         ];
     }
@@ -68,6 +75,17 @@ class HorizonJobSearchService
             'pending' => 'getPending',
             'completed' => 'getCompleted',
             default => 'getRecent',
+        };
+    }
+
+    private function resolveTotalCount(string $type): int
+    {
+        return match ($type) {
+            'failed' => $this->jobs->countFailed(),
+            'pending' => $this->jobs->countPending(),
+            'completed' => $this->jobs->countCompleted(),
+            'recent' => $this->jobs->countRecent(),
+            default => $this->jobs->countRecent(),
         };
     }
 
